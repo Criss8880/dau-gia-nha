@@ -18,6 +18,9 @@
 <body>
 @if(Request::route()->getName() == "home")
   @include("layouts-webpage.header-filter")
+@elseif(Request::route()->getName() == "auction_detail" || Request::route()->getName() == "bid")
+  @include("layouts-webpage.header-auction")
+
 @else
   @include("layouts-webpage.header-normal")
 @endif

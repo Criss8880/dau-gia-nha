@@ -5,8 +5,8 @@
   <nav class="navbar navbar-hover navbar-expand-lg navbar-soft navbar-transparent">
     <div class="container">
       <a class='navbar-brand' href='/'>
-        <img src="images/logo-blue.png" alt="">
-        <img src="images/logo-blue-stiky.png" alt="">
+        <img src="/images/logo-blue.png" alt="">
+        <img src="/images/logo-blue-stiky.png" alt="">
       </a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#main_nav99">
         <span class="navbar-toggler-icon"></span>
@@ -38,6 +38,9 @@
               @if(Auth::user()->role == 2)
                 <a href="javascript:void(0)" class="btn btn-primary text-capitalize">
                   <i class="fa fa-user mr-1"></i>Xin chào, {{Auth::user()->name}} </a>
+                <a href="/user/historyBid" class="btn btn-primary text-capitalize">
+                  <i class="fa fa-paypal mr-1"></i> Lịch sử đấu giá </a>
+
               @else
                 <a href="/admin" target="_blank" class="btn btn-primary text-capitalize">
                   <i class="fa fa-user mr-1"></i> Trang quản trị </a>

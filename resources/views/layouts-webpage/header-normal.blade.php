@@ -1,5 +1,5 @@
-<header class="bg-theme-overlay">
-  <!-- <div class="bg-overlay-one"></div> -->
+<!-- HEADER -->
+<header>
   <!-- NAVBAR -->
   <nav class="navbar navbar-hover navbar-expand-lg navbar-soft navbar-transparent">
     <div class="container">
@@ -34,8 +34,16 @@
         <ul class="navbar-nav ">
           @if(Auth::check())
             <li>
-              <a href="javascript:void(0)" class="btn btn-primary text-capitalize">
-                <i class="fa fa-user mr-1"></i>Xin chào, {{Auth::user()->name}} </a>
+              @if(Auth::user()->role == 2)
+                <a href="javascript:void(0)" class="btn btn-primary text-capitalize">
+                  <i class="fa fa-user mr-1"></i>Xin chào, {{Auth::user()->name}} </a>
+                <a href="/user/historyBid" class="btn btn-primary text-capitalize">
+                  <i class="fa fa-paypal mr-1"></i> Lịch sử đấu giá </a>
+
+              @else
+                <a href="/admin" target="_blank" class="btn btn-primary text-capitalize">
+                  <i class="fa fa-user mr-1"></i> Trang quản trị </a>
+              @endif
 
             </li>
             <li style="padding-left: 10px">
@@ -82,66 +90,8 @@
     </div>
   </nav>
   <!-- END NAVBAR -->
-  <!-- BREADCRUMB -->
-  <!-- BREADCRUMB -->
-  <section class="section__breadcrumb ">
-    <div class="container">
-      <div class="row d-flex justify-content-center">
-        <div class="col-md-8 text-center">
-          <h2 class="text-capitalize text-white ">Nhà phố Thuận An</h2>
-          <p class="text-white">Địa chỉ: 34 Ấp 456, phường 5, Thuận An, Bình Dương</p>
+  <!-- HERO -->
 
-        </div>
-        <div class="col-md-4 text-center">
-                        <span style="border-radius: 15px; font-size: 15pt" class="badge badge-primary">Giá hiện tại:
-                            1,500,000,000</span>
-          <main>
-            <div id="countdown">
-              <div class="countdown__container">
-                <div class="countdown__el">
-                  <div class="countdown__time flip" id="days">
-                    <span class="count curr top"></span>
-                    <span class="count next top">20</span>
-                    <span class="count curr bottom">20</span>
-                    <span class="count next bottom"></span>
-                  </div>
-                  <span class="countdown__label">Ngày</span>
-                </div>
-                <div class="countdown__el">
-                  <div class="countdown__time flip" id="hours">
-                    <span class="count curr top"></span>
-                    <span class="count next top">10</span>
-                    <span class="count curr bottom">10</span>
-                    <span class="count next bottom"></span>
-                  </div>
-                  <span class="countdown__label">Giờ</span>
-                </div>
-                <div class="countdown__el">
-                  <div class="countdown__time flip" id="mins">
-                    <span class="count curr top"></span>
-                    <span class="count next top">07</span>
-                    <span class="count curr bottom">07</span>
-                    <span class="count next bottom"></span>
-                  </div>
-                  <span class="countdown__label">Phút</span>
-                </div>
-                <div class="countdown__el">
-                  <div class="countdown__time flip" id="seconds">
-                    <span class="count curr top"></span>
-                    <span class="count next top">10</span>
-                    <span class="count curr bottom">10</span>
-                    <span class="count next bottom"></span>
-                  </div>
-                  <span class="countdown__label">Giây</span>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- END BREADCRUMB -->
-  <!-- END BREADCRUMB -->
+  <!-- END HERO -->
 </header>
-<div class="clearfix"></div>
+<!-- END HEADER -->

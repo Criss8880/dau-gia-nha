@@ -8,7 +8,7 @@
           <div class="widget__footer mb-3">
             <!-- <h4 class="footer-title">company info</h4> -->
             <figure>
-              <img src="images/logo-blue.png" alt="" class="logo-footer">
+              <img src="/images/logo-blue.png" alt="" class="logo-footer">
             </figure>
             <p>
 
