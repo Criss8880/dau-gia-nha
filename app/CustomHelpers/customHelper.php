@@ -1,21 +1,60 @@
 <?php
 use  \Carbon\Carbon;
-
-function Last12Months()
+function getAuctionPrice($auction): string
 {
-  $currentMonth = Carbon::today();// Get the current date
-  $months = [];
+  return number_format($auction->current_price);
+}
 
-
-  for ($i = 0; $i < 13; $i++) {
-    $months[] = $currentMonth->copy();
-    $currentMonth->subMonth();
+function countTaxPrice($bidAmount)
+{
+  if ($bidAmount < 1000000000) {
+    return $bidAmount * 0.04;
+  } elseif ($bidAmount < 3000000000) {
+    return $bidAmount * 0.03;
+  } elseif ($bidAmount < 5000000000) {
+    return $bidAmount * 0.025;
+  } elseif ($bidAmount < 10000000000) {
+    return $bidAmount * 0.0225;
+  } elseif ($bidAmount < 15000000000) {
+    return $bidAmount * 0.02;
+  } elseif ($bidAmount < 25000000000) {
+    return $bidAmount * 0.0175;
+  } elseif ($bidAmount < 35000000000) {
+    return $bidAmount * 0.015;
+  } elseif ($bidAmount < 45000000000) {
+    return $bidAmount * 0.01;
+  } elseif ($bidAmount < 60000000000) {
+    return $bidAmount * 0.0075;
+  } else {
+    return $bidAmount * 0.005;
   }
-  usort($months, function ($a, $b) {
-    return $a <=> $b;
-  });
 
-  return $months;
+}
+
+function showDepositStatus()
+{
+  return [
+    "paid" => "Đã thanh toán",
+    "not_paid" => "Chưa thanh toán",
+    "refund" => "Hoàn tiền"
+  ];
+}
+function showTaxStatus(): array
+{
+  return [
+    "paid" => "Đã thanh toán",
+    "not_win" => "Không trúng",
+    "waiting" => "Đợi thanh toán",
+  ];
+}
+
+function showBidStatus()
+{
+  return [
+    "won" => "Trúng thầu",
+    "no_won" => "Không trúng",
+    "cancel" => "Bị hủy"
+  ];
 }
 
 ?>
