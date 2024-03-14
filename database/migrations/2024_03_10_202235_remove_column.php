@@ -11,9 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('bids', function (Blueprint $table) {
             //
-          $table->string("remember_token")->nullable();
+          $table->dropColumn("deposit_price");
+          $table->dropColumn("deposit_status");
+          $table->dropColumn("tax_price");
+          $table->dropColumn("tax_status");
         });
     }
 
@@ -22,7 +25,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('bids', function (Blueprint $table) {
             //
         });
     }
