@@ -161,6 +161,24 @@ class AuctionController extends Controller
     return redirect()->back()->with(["success" => "Thêm feedback thành công!"]);
   }
 
+    public function addBuyNow($id, Request $request)
+  {
+    $auction = Auction::find($id);
+    $price = $auction->buy_price + $this->countTaxPrice($auction->start_price);
+    $payment = BuyNowPayment::create(["auction_id" => $id, "user_id" => Auth::id(), "paid_status" => "not_paid",
+      "price" => $price]);
+
+    $vnPayAmount = $price*100;
+    $link =  $this->VnPAY->createLink( env("REDIRECT_PAY_NOW_URL") ,env("VNPAY_HASH"), env("VNPAY_TMNCODE"), $vnPayAmount,
+      $request->ip(), "THANH TOAN MUA NGAY #" . $auction->id, 250000, Str::random(4)." BUYNOW". $payment->id, Carbon::now()->addMinutes(15)->format('YmdHis'));
+
+    if ($link["code"] = '00') {
+      return redirect($link["data"]);
+    }
+
+  }
+
+
   public function addBid($id, Request $request)
   {
     $bidPrice = $request->get("bid_price");
@@ -287,7 +305,30 @@ class AuctionController extends Controller
       if ($status == "00") { // thanh toán thành công
 
         // xử lý gd thanh toán ở đây
+        if ($auction->status == "trading") // kiểm tra auction có đang ở trading không
+        {
+          // chuyển trạng thái đơn mua ngay về paid
+          BuyNowPayment::find($buyNowId)->update(["paid_status" => "paid"]);
+          $auction->update(["status" => "bought", "deadline_time" => Carbon::now()]);
 
+          // Trả cọc cho ai đã thanh toán cọc xong
+          AuctionRegister::where("paid_status", "paid")
+            ->where("auction_id", $auction->id)
+            ->update(["paid_status" => "refund"]);
+
+          // Cập nhật toàn bộ bid về chưa trúng
+          $bids = $auction->bids;
+          foreach ($bids as $bid)
+          {
+            $bid->update(["status" => "not_won", "tax_status" => "not_won", "remain_status" => "not_won"]);
+          }
+
+          return redirect("/auction/" . $auction->id )->with(["success" => "Bạn đã mua thành công!"]);
+
+        } else {
+          BuyNowPayment::find($buyNowId)->update(["paid_status" => "refund"]);
+          return redirect("/auction/" . $auction->id )->with(["error" => "Đấu giá đã kết thúc! Bạn sẽ được hoàn tiền thanh toán"]);
+        }
 
 
       } else {
