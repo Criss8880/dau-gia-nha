@@ -254,6 +254,52 @@ class AuctionController extends Controller
     }
   }
 
+  public function checkBuyNow(Request $request)
+  {
+    $txnRef = $request->get("vnp_TxnRef");
+    preg_match('/BUYNOW(\d+)/', $txnRef, $matches);
+    $buyNowId = $matches[1]; // xử lý chuỗi tìm ra mã bid
+    $buyNow = BuyNowPayment::findOrFail($buyNowId); // xử lý chuỗi tìm ra mã đăng ký
+    $auction = $buyNow->auction; // tìm ra auction
+    $vnp_SecureHash = $request->get("vnp_SecureHash");
+    $inputData = array();
+    foreach ($request->all() as $key => $value) {
+      if (substr($key, 0, 4) == "vnp_") {
+        $inputData[$key] = $value;
+      }
+    }
+    unset($inputData['vnp_SecureHash']);
+    ksort($inputData);
+    $i = 0;
+    $hashData = "";
+    foreach ($inputData as $key => $value) {
+      if ($i == 1) {
+        $hashData = $hashData . '&' . urlencode($key) . "=" . urlencode($value);
+      } else {
+        $hashData = $hashData . urlencode($key) . "=" . urlencode($value);
+        $i = 1;
+      }
+    }
+    $secureHash = hash_hmac('sha512', $hashData, env("VNPAY_HASH"));
+    if ($secureHash == $vnp_SecureHash) {
+
+      $status = $request->get("vnp_ResponseCode");
+      if ($status == "00") { // thanh toán thành công
+
+        // xử lý gd thanh toán ở đây
+
+
+
+      } else {
+        return redirect("/auction/" . $auction->id)->with(["error" => "Thanh toán thất bại!"]);
+
+      }
+
+    } else {
+      return redirect("/auction/" . $auction->id)->with(["error" => "Chữ ký không hợp lệ!"]);
+    }
+  }
+
 
 
 
