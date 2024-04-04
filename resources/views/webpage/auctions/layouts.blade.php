@@ -225,6 +225,122 @@
 @endsection
 @section("content")
   @yield("custom_body")
+  <div class="face modal" tabindex="-1" role="dialog" id="buy_modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Bạn đang mua ngay sản phẩm!</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th scope="col">Tiền sản phẩm</th>
+              <th scope="col">Tiền thuế</th>
+              <th scope="col">Tổng cần trả</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td id="buy_price_now">{{number_format($auction->buy_price)}}</td>
+              <td id="tax_price_now">{{number_format(countTaxPrice($auction->start_price))}}</td>
+              <td style="font-weight: bold; color: red">{{number_format($auction->buy_price + countTaxPrice($auction->start_price))}}</td>
+            </tr>
+
+            </tbody>
+          </table>
+          {{--          <p>--}}
+          {{--            Số tiền bạn sẽ trả sau khi trúng thầu là: <span--}}
+          {{--              style="font-weight: bold; color: red;" id="after_pay">0</span>--}}
+          {{--          </p>--}}
+
+
+          <!--<p class="text-center">-->
+          <!--  <img style="width: 50%"-->
+          <!--       src="https://api.vieqr.com/vietqr/VietinBank/113366668888/10000/full.jpg?NDck=UngHoCV&FullName=Quy%20Vacxin%20Covid"-->
+          <!--       alt="">-->
+          <!--</p>-->
+        </div>
+        <div class="modal-footer">
+          <a href="/auction/{{$auction->id}}/buy" class="btn btn-primary" >Tôi đã hiểu và thanh toán</a>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Từ bỏ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="face modal" tabindex="-1" role="dialog" id="vat_modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Bảng VAT</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-bordered">
+            <thead>
+            <tr>
+              <th>Số tiền</th>
+              <th>VAT</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>Dưới 1 tỉ</td>
+              <td>4%</td>
+            </tr>
+            <tr>
+              <td>Từ 1 tỉ đến 3 tỉ</td>
+              <td>3%</td>
+            </tr>
+            <tr>
+              <td>Từ 3 tỉ đến 5 tỉ</td>
+              <td>2.5%</td>
+            </tr>
+            <tr>
+              <td>Từ 5 tỉ đến 10 tỉ</td>
+              <td>2.25%</td>
+            </tr>
+            <tr>
+              <td>Từ 10 tỉ đến 15 tỉ</td>
+              <td>2%</td>
+            </tr>
+            <tr>
+              <td>Từ 15 tỉ đến 25 tỉ</td>
+              <td>1.75%</td>
+            </tr>
+            <tr>
+              <td>Từ 25 tỉ đến 35 tỉ</td>
+              <td>1.5%</td>
+            </tr>
+            <tr>
+              <td>Từ 35 tỉ đến 45 tỉ</td>
+              <td>1%</td>
+            </tr>
+            <tr>
+              <td>Từ 45 tỉ đến 60 tỉ</td>
+              <td>0.75%</td>
+            </tr>
+            <tr>
+              <td>Trên 60 tỉ</td>
+              <td>0.5%</td>
+            </tr>
+            </tbody>
+          </table>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">Đã hiểu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- SINGLE DETAIL -->
   <section class="single__Detail">
     <div class="container">
@@ -236,8 +352,11 @@
 
           @if(Request::route()->getName() == "bid")
           <div id="post">
-            <div class="alert alert-warning" role="alert">
-              <span style="font-size: 10pt">Luật đấu giá tài sản quy định tài sản bán đấu giá bao gồm tài sản mà pháp luật quy định phải bán thông qua đấu giá và tài sản do tổ chức, cá nhân tự nguyện lựa chọn bán thông qua đấu giá. Đối với tài sản mà pháp luật quy định phải bán thông qua đấu giá, Luật liệt kê cụ thể các loại tài sản này trên cơ sở rà soát quy định tại pháp luật chuyên ngành nhằm bảo đảm công khai, minh bạch, làm cơ sở cho các cơ quan, tổ chức, cá nhân tuân thủ trình tự, thủ tục quy định tại Luật đấu giá tài sản khi bán đấu giá các loại tài sản đó, ví dụ như tài sản là quyền sử dụng đất theo Luật đất đai, tài sản nhà nước theo Luật quản lý, sử dụng tài sản nhà nước, tài sản thi hành án theo Luật thi hành án dân sự, tài sản của doanh nghiệp phá sản theo Luật phá sản...Đồng thời, để đảm bảo tính thống nhất, ổn định, lâu dài Luật đấu giá tài sản có quy định mở trong trường hợp pháp luật chuyên ngành sau này có quy định tài sản phải bán thông qua đấu giá thì cũng thuộc phạm vi điều chỉnh của Luật, ví dụ như pháp luật chuyên ngành quy định biển số xe, quyền sở hữu trí tuệ, quyền khai thác cảng biển, sân bay... phải bán thông qua đấu giá thì được thực hiện theo trình tự, thủ tục của Luật đấu giá tài sản.</span>
+            <div class="alert alert-warning" style="font-size: 10pt" role="alert">
+              <p >
+                Luật đấu giá tài sản quy định tài sản bán đấu giá bao gồm tài sản mà pháp luật quy định phải bán thông qua đấu giá và tài sản do tổ chức, cá nhân tự nguyện lựa chọn bán thông qua đấu giá. Đối với tài sản mà pháp luật quy định phải bán thông qua đấu giá, Luật liệt kê cụ thể các loại tài sản này trên cơ sở rà soát quy định tại pháp luật chuyên ngành nhằm bảo đảm công khai, minh bạch, làm cơ sở cho các cơ quan, tổ chức, cá nhân tuân thủ trình tự, thủ tục quy định tại Luật đấu giá tài sản khi bán đấu giá các loại tài sản đó, ví dụ như tài sản là quyền sử dụng đất theo Luật đất đai, tài sản nhà nước theo Luật quản lý, sử dụng tài sản nhà nước, tài sản thi hành án theo Luật thi hành án dân sự, tài sản của doanh nghiệp phá sản theo Luật phá sản...Đồng thời, để đảm bảo tính thống nhất, ổn định, lâu dài Luật đấu giá tài sản có quy định mở trong trường hợp pháp luật chuyên ngành sau này có quy định tài sản phải bán thông qua đấu giá thì cũng thuộc phạm vi điều chỉnh của Luật, ví dụ như pháp luật chuyên ngành quy định biển số xe, quyền sở hữu trí tuệ, quyền khai thác cảng biển, sân bay... phải bán thông qua đấu giá thì được thực hiện theo trình tự, thủ tục của Luật đấu giá tài sản.
+              </p>
+            <p>Bắt buộc trong 10 ngày, nếu người dùng trúng thầu, họ không thanh toán đủ VAT Và phần tiền cọc lại thì người trúng thầu sẽ mất cọc, số tiền mà họ đã cọc từ trước</p>
             </div>
           </div>
           @endif
@@ -288,47 +407,10 @@
                 <h6 class="text-capitalize detail-heading">Lịch sử đấu giá</h6>
                 <!-- INFO PROPERTY DETAIL -->
                 <div class="property__detail-info">
-                  <div class="row">
-                    <table class="table">
-                      <thead class="thead-light">
-                      <tr>
-                        <th scope="col">Tài khoản</th>
-                        <th scope="col">Giá đặt</th>
-                        <th scope="col">Thời gian</th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      @foreach($auction->bids()->where('status', '!=', 'cancel')->orWhere('status', null)->orderBy('id', 'desc')->get() as $bid)
-                        <tr>
-                          <th scope="row">{{ $bid->user->email }}</th>
-                          <td>{{ number_format($bid->bid_price) }}</td>
-                          <td>{{ $bid->created_at->format('d/m/Y H:i') }}</td>
-                        </tr>
-                      @endforeach
+                  <div class="row" id="table_ajax">
 
-                      </tbody>
-                    </table>
-                    @if(Auth::check())
-                      @if(Auth::user()->role == 2)
-                        @if($auction->deadline_time > \Carbon\Carbon::now())
-                          <a href="/auction/{{$auction->id}}/bid"
-                             class="btn btn-primary text-capitalize btn-block text-white"> đấu giá ngay
-                            <i class="fa fa-calculator ml-1"></i>
-                          </a>
-                        @else
-                          <p class="text-danger">Đã hết hạn đấu giá!</p>
-                        @endif
 
-                      @else
-                        <p class="text-danger">Bạn không có quyền đấu giá!</p>
 
-                      @endif
-                    @else
-                      <a href="/auction/{{$auction->id}}/bid"
-                         class="btn btn-primary text-capitalize btn-block text-white"> đấu giá ngay
-                        <i class="fa fa-calculator ml-1"></i>
-                      </a>
-                    @endif
                   </div>
 
                 </div>
@@ -369,7 +451,7 @@
                         <li><b>Garage:</b> {{$auction->count_garage}}</li>
                         <li><b>Diện Tích Garage:</b> {{$auction->area_garage}}m2</li>
                         <li><b>Năm Xây Dựng:</b> {{$auction->year_build}}</li>
-                        <li><b>Loại BĐS:</b> Nhà Ở Gia Đình Đầy Đủ</li>
+                        <li><b>Loại BĐS:</b> {{translatePropertyType($auction->type)}}</li>
                       </ul>
                     </div>
                   </div>
@@ -489,6 +571,9 @@
 
 @endsection
 @section("page-script")
+
+  @yield("custom-js")
+
   <!-- Latest compiled and minified JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -553,9 +638,29 @@
       }, 1000);
     }
 
+    function reloadTable()
+    {
+      $.ajax({
+        method: "GET",
+        url: "/auction/{{$auction->id}}/getBidAjax",
+        success: function (html){
+          $( "#table_ajax" ).html( html );
+        }
+      })
+    }
+
 
 
     $(function () {
+
+      reloadTable()
+
+      @if($auction->status == "trading")
+
+      setInterval(function(){
+        reloadTable()
+      }, 3000);
+      @endif
 
       $("#rateYo").rateYo({
         fullStar: true,
@@ -644,7 +749,7 @@
     function parseCurrency(val) {
       return parseInt(val.replace(/,/g, ''));
     }
-    $(document).on('keyup blur', '#bid_input', function () {
+    $(document).on('keyup blur', '.money', function () {
       formatCurrency($(this), $(this).is(':focus') ? 'keyup' : 'blur');
     });
 
@@ -659,12 +764,34 @@
       let minValue = $("#bid_input").data("min");
       if (bidInput >= minValue){
         $("#bid_price").val(bidInput)
-        $("#calculate_modal").modal('show')
-        $("#deposit_now").html(formatPrice(bidInput))
+        if (bidInput >= {{$auction->buy_price}} ){
+          $("#buy_alert").modal('show')
+        } else {
+          $("#calculate_modal").modal('show')
+          $("#deposit_now").html(formatPrice(bidInput))
+
+        }
       } else {
         alert("Không đúng số tiền tối thiểu!");
       }
     }
+
+    function autoBid()
+    {
+      $("#auto_bid_modal").modal('show')
+    }
+
+
+    function buyThis(){
+      $("#buy_modal").modal('show')
+    }
+
+    function vatPopup(){
+      $("#vat_modal").modal('show')
+    }
+
+
+
 
 
   </script>
