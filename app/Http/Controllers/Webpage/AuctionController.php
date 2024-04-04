@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Webpage;
 use App\Http\Controllers\Controller;
 use App\Models\Auction;
 use App\Models\AuctionRegister;
+use App\Models\AutoBidSetting;
 use App\Models\Bid;
+use App\Models\BuyNowPayment;
 use App\Models\Feedback;
 use App\Services\VnPayService;
 use Carbon\Carbon;
@@ -54,6 +56,11 @@ class AuctionController extends Controller
     $startTime = \Carbon\Carbon::now();
     $endTime = \Carbon\Carbon::parse($auction->deadline_time);
     $interval = $startTime->diff($endTime);
+
+    //
+
+
+
     return compact('auction', 'galleries', 'interval', 'stars');
   }
 
@@ -75,7 +82,7 @@ class AuctionController extends Controller
   public function register($id, Request $request)
   {
     $auction = Auction::where("status", "trading")->findOrFail($id);
-    $needPay = $auction->start_price * 10/100; // + VAT
+    $needPay = $auction->start_price * 1/100; // + VAT
     $register = AuctionRegister::create([
       "auction_id" =>$id,
       "user_id" => Auth::id(),
@@ -161,24 +168,6 @@ class AuctionController extends Controller
     return redirect()->back()->with(["success" => "Thêm feedback thành công!"]);
   }
 
-    public function addBuyNow($id, Request $request)
-  {
-    $auction = Auction::find($id);
-    $price = $auction->buy_price + $this->countTaxPrice($auction->start_price);
-    $payment = BuyNowPayment::create(["auction_id" => $id, "user_id" => Auth::id(), "paid_status" => "not_paid",
-      "price" => $price]);
-
-    $vnPayAmount = $price*100;
-    $link =  $this->VnPAY->createLink( env("REDIRECT_PAY_NOW_URL") ,env("VNPAY_HASH"), env("VNPAY_TMNCODE"), $vnPayAmount,
-      $request->ip(), "THANH TOAN MUA NGAY #" . $auction->id, 250000, Str::random(4)." BUYNOW". $payment->id, Carbon::now()->addMinutes(15)->format('YmdHis'));
-
-    if ($link["code"] = '00') {
-      return redirect($link["data"]);
-    }
-
-  }
-
-
   public function addBid($id, Request $request)
   {
     $bidPrice = $request->get("bid_price");
@@ -195,7 +184,7 @@ class AuctionController extends Controller
           "status" => null,
           "bid_price" => $bidPrice,
           "tax_price" => $this->countTaxPrice($bidPrice),
-          "remain_price" => $bidPrice - ($auction->start_price * 10/100),
+          "remain_price" => $bidPrice - ($auction->start_price * 1/100),
           "auction_register_id" => $checkRegister->first()->id
         ]);
 
@@ -272,6 +261,24 @@ class AuctionController extends Controller
     }
   }
 
+
+  public function addBuyNow($id, Request $request)
+  {
+    $auction = Auction::find($id);
+    $price = $auction->buy_price + $this->countTaxPrice($auction->start_price);
+    $payment = BuyNowPayment::create(["auction_id" => $id, "user_id" => Auth::id(), "paid_status" => "not_paid",
+      "price" => $price]);
+
+    $vnPayAmount = $price*100;
+    $link =  $this->VnPAY->createLink( env("REDIRECT_PAY_NOW_URL") ,env("VNPAY_HASH"), env("VNPAY_TMNCODE"), $vnPayAmount,
+      $request->ip(), "THANH TOAN MUA NGAY #" . $auction->id, 250000, Str::random(4)." BUYNOW". $payment->id, Carbon::now()->addMinutes(15)->format('YmdHis'));
+
+    if ($link["code"] = '00') {
+      return redirect($link["data"]);
+    }
+
+  }
+
   public function checkBuyNow(Request $request)
   {
     $txnRef = $request->get("vnp_TxnRef");
@@ -304,12 +311,12 @@ class AuctionController extends Controller
       $status = $request->get("vnp_ResponseCode");
       if ($status == "00") { // thanh toán thành công
 
-        // xử lý gd thanh toán ở đây
         if ($auction->status == "trading") // kiểm tra auction có đang ở trading không
         {
           // chuyển trạng thái đơn mua ngay về paid
-          BuyNowPayment::find($buyNowId)->update(["paid_status" => "paid"]);
-          $auction->update(["status" => "bought", "deadline_time" => Carbon::now()]);
+          $buyNow = BuyNowPayment::find($buyNowId);
+          $buyNow->update(["paid_status" => "paid"]);
+          $auction->update(["status" => "bought", "buy_win_id" => $buyNowId , "deadline_time" => Carbon::now(), "winner_id" => $buyNow->user_id]);
 
           // Trả cọc cho ai đã thanh toán cọc xong
           AuctionRegister::where("paid_status", "paid")
@@ -331,6 +338,7 @@ class AuctionController extends Controller
         }
 
 
+
       } else {
         return redirect("/auction/" . $auction->id)->with(["error" => "Thanh toán thất bại!"]);
 
@@ -342,7 +350,38 @@ class AuctionController extends Controller
   }
 
 
+  // auto tool
 
+  public function addAutoBid($id, Request $request)
+  {
+    $auction = Auction::find($id);
+    $maxPrice = str_replace(',', '', $request->get("max_price"));
+    if ($maxPrice >= $auction->buy_price){
+      return redirect()->back()->with(["error" => "Bạn không thể cài đặt lớn hơn giá mua ngay!"]);
+    }
 
+    if ($maxPrice <= $auction->current_price){
+      return redirect()->back()->with(["error" => "Bạn phải cài đặt lớn hơn giá hiện tại!"]);
+    }
+
+    $autoBid = AutoBidSetting::updateOrCreate([
+      "user_id" => Auth::id(),
+      "auction_id"=> $id,
+    ], ["max_price" => $maxPrice]);
+    return redirect()->back()->with(["success" => "Tạo đấu giá tự động thành công!"]);
+  }
+
+  public function cancelAuto($id)
+  {
+    AutoBidSetting::where("user_id", Auth::id())->where("auction_id", $id)->delete();
+    return redirect()->back()->with(["success" => "Hủy đấu giá tự động thành công!"]);
+
+  }
+
+  public function getBidAjax($id)
+  {
+    $auction = Auction::find($id);
+    return view("webpage.auctions.ajax", compact('auction'));
+  }
 
 }
