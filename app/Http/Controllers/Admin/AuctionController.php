@@ -13,11 +13,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
-    //
+  //
   public function index()
   {
-      $auctions = Auction::where("user_id", Auth::id())->orderBy("id", "desc")->get();
-      return view("admin.auctions.index", compact('auctions'));
+    $auctions = Auction::where("user_id", Auth::id())->orderBy("id", "desc")->get();
+    return view("admin.auctions.index", compact('auctions'));
   }
 
   public function createForm()
@@ -29,6 +29,7 @@ class AuctionController extends Controller
   {
     $data = $request->all();
     $data["user_id"] = Auth::id();
+    $data["status"] = "trading";
     $data["current_price"] = $request->get("start_price");
     Auction::create($data);
     return redirect("/admin/auctions")->with(["success" => "Tạo đấu giá thành công!"]);
@@ -45,7 +46,9 @@ class AuctionController extends Controller
     if ($request->get("tab") == "bids")
     {
       $bids = Bid::where("auction_id", $id)->orderBy("bid_price", "desc")->get();
-      return view("admin.auctions.bids", compact('auction','bids'));
+      $historyBuy = BuyNowPayment::where("auction_id", $id)->orderBy("id", "desc")->where("paid_status", "!=", "not_paid")->get();
+
+      return view("admin.auctions.bids", compact('auction','bids', 'historyBuy'));
     }
 
 
@@ -65,6 +68,10 @@ class AuctionController extends Controller
   public function edit($id, Request $request)
   {
     $data = $request->all();
+    $auction = Auction::find($id);
+    if ($auction->bids->count() == 0){
+      $data["current_price"] = $data["start_price"];
+    }
     Auction::find($id)->update($data);
     return redirect()->back()->with(["success" => "Cập nhật thành công!"]);
 
@@ -79,23 +86,29 @@ class AuctionController extends Controller
 
   public function resetAuction($id, Request $request)
   {
-      $time = $request->get("time");
-      $formatTime = Carbon::parse($time)->format('d/m/Y H:i');
-      $auction = Auction::find($id);
+    $time = $request->get("time");
+    if (Carbon::parse($time) < Carbon::now()){
+      return redirect()->back()->with(["error" => "Vui lòng không reset thời gian quá gần!"]);
+    }
 
 
-
-      // disable đăng ký cho toàn bộ phiên cũ
-      AuctionRegister::where("auction_id", $id)->update(["is_disable" => 1]);
-
-      // cập nhật bid cũ
-      Bid::where("auction_id", $id)->update(["status" => "cancel", "tax_status" => "not_win", "remain_status" => "not_win"]);
+    $formatTime = Carbon::parse($time)->format('d/m/Y H:i');
+    $auction = Auction::find($id);
+    $current_price = $auction->start_price;
 
 
-      // cập nhật thời gian phiên
-      $auction->update(["deadline_time" => $time, "status" => "trading"]);
+    // disable đăng ký cho toàn bộ phiên cũ
+    AuctionRegister::where("auction_id", $id)->update(["is_disable" => 1]);
 
-      return redirect()->back()->with(["success" => "Phiên đã được reset về "  . $formatTime]);
+    // cập nhật bid cũ
+    Bid::where("auction_id", $id)->update(["status" => "cancel", "tax_status" => "not_win", "remain_status" => "not_win"]);
+
+
+    // cập nhật thời gian phiên
+    $auction->update(["deadline_time" => $time, "status" => "trading",
+      "current_price" => $current_price]);
+
+    return redirect()->back()->with(["success" => "Phiên đã được reset về "  . $formatTime]);
   }
 
 
